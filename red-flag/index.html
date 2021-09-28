@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>img handler</title>
+</head>
+<body>
+  <input name="img" type="file">
+  <button id="export">导出图片</button>
+  <canvas id="img-handler"></canvas>
+  <script>
+    function drawImg(ctx, width, height, url) {
+      var img = new Image();
+      img.onload = function(){
+        ctx.drawImage(img, 0, 0, width, height);
+        drawBg(ctx, width, height)
+        drawStar()
+      }
+      img.src = url;
+    }
+    function drawBg (ctx, width, height) {
+      var clg = ctx.createLinearGradient(0,0,width,height);
+      clg.addColorStop(0,'red'); // 第一个参数可以设定渐变位置 数字0~1之间
+      clg.addColorStop(1,'transparent');
+      ctx.fillStyle = clg;
+      ctx.fillRect(0,0,width,height)
+    }
+    function drawStarBase(R,r,x,y,ctx,fillStyle) {
+      //  r、R分别是内外圆半径
+      // x、y分别是水平、垂直偏移量
+      
+      ctx.beginPath();
+      for(var i = 0; i < 5; i ++) {
+        // 外顶点(x1,y1)  内顶点(x2,y2)
+        var x1 = Math.cos((18+72*i)/180*Math.PI)*R,
+            y1 = Math.sin((18+72*i)/180*Math.PI)*R,
+            x2 = Math.cos((54+72*i)/180*Math.PI)*r,
+            y2 = Math.sin((54+72*i)/180*Math.PI)*r;
+              
+        ctx.lineTo(x1 + x, y1 + y);
+        ctx.lineTo(x2 + x, y2 + y);
+      }
+      
+      ctx.closePath();
+      ctx.fillStyle = fillStyle;
+      ctx.fill();
+    }
+    function drawStar () {
+      const baseX = 0;
+      const baseY = 0;
+      const bg = 'rgba(255, 206, 18, .8)';
+      drawStarBase(20, 50, 40 + baseX, 90 + baseY, ctx, bg)
+      drawStarBase(8, 20, 100 + baseX, 20 + baseY, ctx, bg)
+      drawStarBase(8, 20, 140 + baseX, 60 + baseY, ctx, bg)
+      drawStarBase(20, 8, 140 + baseX, 120 + baseY, ctx,bg)
+      drawStarBase(8, 20, 100 + baseX, 160 + baseY, ctx,bg)
+    }
+    function exportImg (blob) {
+      download(URL.createObjectURL(blob));
+    }
+    function download (url) {
+      const a = document.createElement('a');
+      a.setAttribute('download', '');
+      a.setAttribute('href', url);
+      a.click();
+    }
+  </script>
+  <script>
+    const importImgEl = document.querySelector('[name=img]');
+    const exportImgEl = document.querySelector('#export');
+    const width = 500, height = 500;
+    let canvas = document.querySelector('#img-handler');
+    canvas.setAttribute('width',width);
+		canvas.setAttribute('height',height);
+    const ctx = canvas.getContext('2d');
+    drawImg(ctx, width, height);
+    importImgEl.addEventListener('change', function (e) {
+      const files = e.target.files;
+      drawImg(ctx, width, height, URL.createObjectURL(files[0]))
+    })
+    exportImgEl.addEventListener('click', function () {
+      canvas.toBlob(exportImg, 'image/png/')
+    })
+  </script>
+</body>
+</html>

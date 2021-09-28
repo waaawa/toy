@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>放大镜</title>
+  <style>
+    .pic-container {
+        width: 400px;
+        height: 400px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .pic-container img{
+        width: inherit;
+        height: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="pic-container">
+    <img src="./nhc.png" alt="" />
+  </div>
+  <script>
+    // 图片容器
+    var container = document.getElementsByClassName('pic-container')[0]
+    // 图片
+    var img = container.getElementsByTagName('img')[0]
+    // 尺寸 (浏览器版本不支持解构语法糖的话，自己动   →_→ )
+    var { width:picWidth, height:picHeight } = img.getBoundingClientRect()
+    // 图片路径
+    var picUrl = img.src
+    /**
+    * 计算图片位置
+    * param {multiple} 放大倍数
+    * param {x} x轴
+    * param {y} y轴
+    */
+    function calcPosition(multiple, x, y) {
+        container.style.backgroundSize = `${multiple * picWidth}px ${multiple * picHeight}px`
+        container.style.backgroundPosition = `-${(multiple - 1) * x}px -${(multiple - 1) * y}px`
+    }
+    // 移入
+    img.addEventListener('mouseover', function() {
+        container.style.background = `url(${picUrl}) no-repeat`
+        img.style.opacity = 0
+    })
+    // 移出
+    img.addEventListener('mouseout', function() {
+        container.style.background = ''
+        img.style.opacity = 1
+    })
+    // 移动
+    img.addEventListener('mousemove', function(e) {
+        var { offsetX, offsetY } = e
+        calcPosition(2, offsetX, offsetY)
+    })
+  </script>
+</body>
+</html>

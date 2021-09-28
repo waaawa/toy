@@ -5,29 +5,60 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>img handler</title>
+  <style>
+    .wrap{
+      display: flex;
+    }
+    .handler {
+      display: flex;
+      flex-direction: column;
+      width: 209px;
+      margin-right: 20px;
+    }
+    .label {
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-  <input name="img" type="file">
-  <button id="export">导出图片</button>
-  <canvas id="img-handler"></canvas>
+  <div class="wrap">
+    <div class="handler">
+      <span class="label">图片尺寸 正方形 默认500 像素</span>
+      <input name="size" type="text">
+      <input name="img" type="file">
+      <button id="export">导出图片</button>
+    </div>
+    <div class="show">
+      <canvas id="img-handler"></canvas>
+    </div>
+  </div>
   <script>
-    function drawImg(ctx, width, height, url) {
+    const importImgEl = document.querySelector('[name=img]');
+    const size = document.querySelector('[name=size]');
+    const exportImgEl = document.querySelector('#export');
+    const canvas = document.querySelector('#img-handler');
+    let width, height;
+    width = height = parseInt(size) || 500;
+    canvas.setAttribute('width',width);
+		canvas.setAttribute('height',height);
+    const ctx = canvas.getContext('2d');
+    function drawImg(url) {
       var img = new Image();
       img.onload = function(){
         ctx.drawImage(img, 0, 0, width, height);
-        drawBg(ctx, width, height)
+        drawBg()
         drawStar()
       }
       img.src = url;
     }
-    function drawBg (ctx, width, height) {
+    function drawBg () {
       var clg = ctx.createLinearGradient(0,0,width,height);
       clg.addColorStop(0,'red'); // 第一个参数可以设定渐变位置 数字0~1之间
       clg.addColorStop(1,'transparent');
       ctx.fillStyle = clg;
       ctx.fillRect(0,0,width,height)
     }
-    function drawStarBase(R,r,x,y,ctx,fillStyle) {
+    function drawStarBase(R,r,x,y,fillStyle) {
       //  r、R分别是内外圆半径
       // x、y分别是水平、垂直偏移量
       
@@ -47,15 +78,31 @@
       ctx.fillStyle = fillStyle;
       ctx.fill();
     }
+    function drawStarWrap () {
+      const baseSize = width / 100;
+      return (scale, x, y, reverse) => {
+        x = getSize(x);
+        y = getSize(y);
+        const bg = 'rgba(255, 206, 18, .8)';
+        const r = baseSize * 2 * scale;
+        const R = baseSize * 5 * scale;
+        if (!reverse) drawStarBase(r, R, x, y, bg)
+        else drawStarBase(R, r, x, y, bg)
+      }
+    }
+    function getSize (v) {
+      return (width / 500) * v;
+    }
     function drawStar () {
-      const baseX = 0;
-      const baseY = 0;
-      const bg = 'rgba(255, 206, 18, .8)';
-      drawStarBase(20, 50, 40 + baseX, 90 + baseY, ctx, bg)
-      drawStarBase(8, 20, 100 + baseX, 20 + baseY, ctx, bg)
-      drawStarBase(8, 20, 140 + baseX, 60 + baseY, ctx, bg)
-      drawStarBase(20, 8, 140 + baseX, 120 + baseY, ctx,bg)
-      drawStarBase(8, 20, 100 + baseX, 160 + baseY, ctx,bg)
+      const baseX = 20;
+      const baseY = 20;
+      
+      const player = drawStarWrap()
+      player(3, 40 + baseX, 90 + baseY)
+      player(1, 180 + baseX, 20 + baseY)
+      player(1, 210 + baseX, 70 + baseY)
+      player(1, 210 + baseX, 130 + baseY, 1)
+      player(1, 180 + baseX, 180 + baseY)
     }
     function exportImg (blob) {
       download(URL.createObjectURL(blob));
@@ -68,20 +115,12 @@
     }
   </script>
   <script>
-    const importImgEl = document.querySelector('[name=img]');
-    const exportImgEl = document.querySelector('#export');
-    const width = 500, height = 500;
-    let canvas = document.querySelector('#img-handler');
-    canvas.setAttribute('width',width);
-		canvas.setAttribute('height',height);
-    const ctx = canvas.getContext('2d');
-    drawImg(ctx, width, height);
     importImgEl.addEventListener('change', function (e) {
       const files = e.target.files;
-      drawImg(ctx, width, height, URL.createObjectURL(files[0]))
+      drawImg(URL.createObjectURL(files[0]))
     })
     exportImgEl.addEventListener('click', function () {
-      canvas.toBlob(exportImg, 'image/png/')
+      canvas.toBlob(exportImg, 'image/png/', 9999)
     })
   </script>
 </body>
